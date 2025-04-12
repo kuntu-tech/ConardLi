@@ -8,6 +8,6 @@
       ]
     }
   },
-  "defaultServer": "memory",
+  "defaultServer": "mongodb",
   "system": "这里填写系统提示词"
 }
