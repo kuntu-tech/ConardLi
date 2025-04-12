@@ -7,6 +7,19 @@ const __dirname = dirname(__filename);
 const logsDir = path.join(__dirname, "../../logs");
 let index = 0;
 
+export enum logType {
+  GetTools = "[GET Tools]",
+  GetToolsError = "[GET Tools Error]",
+  ConnectToServer = "[Connect To Server]",
+  LLMRequest = "[LLM Request]",
+  LLMResponse = "[LLM Response]",
+  LLMError = "[LLM Error]",
+  LLMStream = "[LLM Stream]",
+  ToolCall = "[Tool Call]",
+  ToolCallResponse = "[Tool Call Response]",
+  ToolCallError = "[Tool Call Error]",
+}
+
 /**
  * 清空日志目录
  */
@@ -33,12 +46,20 @@ export function clearLogs(): void {
  * 添加日志
  * @param logData
  */
-export function addLogs(logData: any) {
-  index++;
+export function addLogs(logData: any, logType: logType) {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  const seconds = String(now.getSeconds()).padStart(2, "0");
+  const logFileName = `[${index++}] ${logType} ${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  console.log(logFileName, JSON.stringify(logData, null, 2));
 
   if (logData) {
     fs.writeFileSync(
-      path.join(__dirname, `../../logs/Step${index}.json`),
+      path.join(__dirname, `../../logs/${logFileName}.json`),
       JSON.stringify(logData, null, 2)
     );
   }

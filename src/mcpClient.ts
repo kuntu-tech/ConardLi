@@ -167,13 +167,6 @@ export class MCPClient {
 
       // 获取可用工具列表
       this.tools = await this.toolService.getTools();
-
-      console.log(
-        "已连接到服务器，可用工具:",
-        this.tools.map(({ function: { name, description } }) => {
-          return { name, description };
-        })
-      );
     } catch (error) {
       console.error("连接到MCP服务器失败: ", error);
       throw new Error(
@@ -191,8 +184,6 @@ export class MCPClient {
     try {
       // 添加新的用户查询
       this.messages.push({ role: "user", content: query });
-
-      console.log("messages", JSON.stringify(this.messages, null, 2));
 
       // 获取初始响应
       const response = await this.llmService.sendMessage(
@@ -226,11 +217,6 @@ export class MCPClient {
         // 添加工具调用到消息历史
         this.messages.push(responseMessage);
 
-        console.log(
-          "tool_calls",
-          JSON.stringify(responseMessage.tool_calls, null, 2)
-        );
-
         // 处理每个工具调用
         for (const toolCall of responseMessage.tool_calls) {
           if (toolCall.type === "function") {
@@ -239,7 +225,11 @@ export class MCPClient {
 
             // 添加工具调用说明
             finalText.push(
-              `[调用工具 ${toolName}，参数 ${JSON.stringify(toolArgs)}]`
+              `\n[调用工具 ${toolName}，参数 ${JSON.stringify(
+                toolArgs,
+                null,
+                2
+              )}]\n`
             );
 
             try {
@@ -261,11 +251,6 @@ export class MCPClient {
                 tool_call_id: toolCall.id,
                 content: content,
               });
-
-              // 打印工具调用结果类型，便于调试
-              console.log(
-                `工具调用结果类型: ${typeof result.content}, 处理后: ${typeof content}`
-              );
             } catch (toolError) {
               // 工具调用失败，将错误信息添加到消息历史
               this.messages.push({

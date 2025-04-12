@@ -5,7 +5,7 @@
 
 import OpenAI from "openai";
 import { OpenAITool } from "../types/index.js";
-import { addLogs } from "../utils/log.js";
+import { addLogs, logType } from "../utils/log.js";
 
 /**
  * LLM服务类
@@ -44,6 +44,16 @@ export class LLMService {
     tools?: OpenAITool[]
   ) {
     try {
+      addLogs(
+        {
+          model: this.model,
+          messages,
+          tools: tools && tools.length > 0 ? tools : undefined,
+          tool_choice: tools && tools.length > 0 ? "auto" : undefined,
+        },
+        logType.LLMRequest
+      );
+
       // 调用OpenAI API创建聊天回复
       const result = await this.openai.chat.completions.create({
         model: this.model,
@@ -54,19 +64,10 @@ export class LLMService {
 
       // 将请求和响应保存到日志文件
 
-      addLogs({
-        request: {
-          model: this.model,
-          messages,
-          tools: tools && tools.length > 0 ? tools : undefined,
-          tool_choice: tools && tools.length > 0 ? "auto" : undefined,
-        },
-        response: result,
-      });
+      addLogs(result, logType.LLMResponse);
 
       return result;
     } catch (error) {
-      console.error("发送消息到LLM失败:", error);
       throw new Error(
         `发送消息到LLM失败: ${
           error instanceof Error ? error.message : String(error)
