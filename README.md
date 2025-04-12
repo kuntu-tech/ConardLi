@@ -1,6 +1,6 @@
 # MCP Client
 
-基于 Model Context Protocol (MCP) 的 Node.js 客户端实现
+基于 Model Context Protocol (MCP) 的 Node.js 客户端实现（使用 Function Calling）
 
 ## 项目介绍
 
@@ -9,8 +9,9 @@ MCP Client 是一个基于 Model Context Protocol 的 Node.js 客户端实现，
 ## 核心特性
 
 - 支持连接任何符合 MCP 标准的服务器
-- 使用 OpenAI API 提供 LLM 能力
+- 支持兼容 OpenAI API 格式的 LLM 能力
 - 自动发现和使用服务器提供的工具
+- 完善的日志记录系统，包括 API 请求和工具调用
 - 交互式命令行界面
 - 支持工具调用和结果处理
 
@@ -19,6 +20,7 @@ MCP Client 是一个基于 Model Context Protocol 的 Node.js 客户端实现，
 - Node.js 17 或更高版本
 - npm 最新版本
 - OpenAI API 密钥
+- 磁盘空间用于存储日志文件（位于 `logs/` 目录）
 
 ## 安装
 
@@ -64,7 +66,9 @@ npm run build
 
 ## 使用方法
 
-要启动 MCP 客户端，请使用以下命令：
+要启动 MCP 客户端，您可以使用以下两种方式：
+
+### 1. 直接指定服务器脚本路径
 
 ```bash
 node build/index.js <服务器脚本路径>
@@ -72,16 +76,29 @@ node build/index.js <服务器脚本路径>
 
 其中 `<服务器脚本路径>` 是指向 MCP 服务器脚本的路径，可以是 JavaScript (.js) 或 Python (.py) 文件。
 
+### 2. 使用配置文件
+
+```bash
+node build/index.js <服务器标识符> <配置文件路径>
+```
+
+其中 `<服务器标识符>` 是配置文件中定义的服务器名称，`<配置文件路径>` 是包含服务器定义的 JSON 文件的路径。
+
 ### 示例
 
-连接 JavaScript MCP 服务器：
+直接连接 JavaScript MCP 服务器：
 ```bash
 node build/index.js /path/to/weather-server/build/index.js
 ```
 
-连接 Python MCP 服务器：
+直接连接 Python MCP 服务器：
 ```bash
 node build/index.js /path/to/mcp-server.py
+```
+
+使用配置文件连接服务器：
+```bash
+node build/index.js mongodb ./mcp-servers.json
 ```
 
 ## 工作原理
@@ -96,9 +113,23 @@ node build/index.js /path/to/mcp-server.py
    - OpenAI 提供最终回复
 4. **交互式循环**：用户可以不断输入查询，直到输入"quit"退出
 
+## 日志系统
+
+MCP Client 包含一个全面的日志系统，详细记录所有关键操作和通信。日志文件保存在 `logs/` 目录中，以 JSON 格式存储，方便查询和分析。
+
+### 日志类型
+
+- **LLM 的请求和响应** - 记录与 OpenAI API 的所有通信
+- **工具调用和结果** - 记录所有工具调用参数和返回结果
+- **错误信息** - 记录系统运行期间的任何错误
+
+### 日志命名和格式
+
+日志文件连统命名为 `[index] [log_type] YYYY-MM-DD HH:MM:SS.json`，包含序号、日志类型和时间戳，方便按时间顺序查看整个会话。
+
 ## 架构设计
 
-MCP Client 基于客户端-服务器架构：
+MCP Client 基于模块化的客户端-服务器架构：
 - **传输层**：使用 Stdio 传输机制与服务器通信
 - **协议层**：使用 MCP 协议处理请求/响应和工具调用
 - **模型层**：通过 OpenAI API 提供 LLM 能力
