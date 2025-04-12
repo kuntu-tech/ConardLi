@@ -1,6 +1,6 @@
 {
   "name": "mcp-client-nodejs",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Node.js MCP Client 实现，基于 Model Context Protocol",
   "type": "module",
   "main": "build/index.js",
