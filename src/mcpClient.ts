@@ -32,6 +32,7 @@ export class MCPClient {
   private llmService: LLMService; // LLM服务
   private toolService: ToolService; // 工具服务
   private systemPrompt?: string; // 系统提示词，从配置文件中读取
+  private messages: Array<OpenAI.Chat.ChatCompletionMessageParam> = []; // 对话消息历史
 
   /**
    * 构造函数
@@ -184,27 +185,28 @@ export class MCPClient {
    */
   async processQuery(query: string): Promise<string> {
     try {
-      // 构建初始消息
-      const messages: Array<OpenAI.Chat.ChatCompletionMessageParam> = [];
-
-      // 如果有系统提示词，则先添加到消息中
-      if (this.systemPrompt) {
-        messages.push({ role: "system", content: this.systemPrompt });
+      // 清空消息数组，但保留之前的对话历史
+      // 如果是第一次查询，或者需要重置对话，就添加系统提示词
+      if (this.messages.length === 0 && this.systemPrompt) {
+        this.messages.push({ role: "system", content: this.systemPrompt });
       }
 
-      // 添加用户查询
-      messages.push({ role: "user", content: query });
+      // 添加新的用户查询
+      this.messages.push({ role: "user", content: query });
 
-      console.log("messages", JSON.stringify(messages, null, 2));
+      console.log("messages", JSON.stringify(this.messages, null, 2));
 
       // 获取初始响应
-      const response = await this.llmService.sendMessage(messages, this.tools);
+      const response = await this.llmService.sendMessage(
+        this.messages,
+        this.tools
+      );
 
       // 提取回复内容
       const finalText: string[] = [];
 
       if (!response.choices || !response.choices[0]) {
-        console.log(33, response);
+        console.log("error", response);
       }
 
       // 获取响应消息
@@ -213,12 +215,18 @@ export class MCPClient {
       // 添加模型回复文本
       if (responseMessage.content) {
         finalText.push(responseMessage.content);
+
+        // 将简单文本回复也添加到对话历史中
+        this.messages.push({
+          role: "assistant",
+          content: responseMessage.content,
+        });
       }
 
       // 处理工具调用
       if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
         // 添加工具调用到消息历史
-        messages.push(responseMessage);
+        this.messages.push(responseMessage);
 
         console.log(
           "tool_calls",
@@ -250,7 +258,7 @@ export class MCPClient {
                   ? result.content
                   : JSON.stringify(result.content);
 
-              messages.push({
+              this.messages.push({
                 role: "tool",
                 tool_call_id: toolCall.id,
                 content: content,
@@ -262,7 +270,7 @@ export class MCPClient {
               );
             } catch (toolError) {
               // 工具调用失败，将错误信息添加到消息历史
-              messages.push({
+              this.messages.push({
                 role: "tool",
                 tool_call_id: toolCall.id,
                 content: `错误: ${
@@ -285,14 +293,22 @@ export class MCPClient {
 
         // 获取模型对工具结果的解释
         try {
-          console.log("tools call messages", messages);
+          console.log("tools call messages", this.messages);
 
-          const followupResponse = await this.llmService.sendMessage(messages);
+          const followupResponse = await this.llmService.sendMessage(
+            this.messages
+          );
 
           const followupContent = followupResponse.choices[0].message.content;
 
           if (followupContent) {
             finalText.push(followupContent);
+
+            // 将工具调用后的最终回复也添加到对话历史中
+            this.messages.push({
+              role: "assistant",
+              content: followupContent,
+            });
           }
         } catch (followupError) {
           finalText.push(
@@ -370,6 +386,9 @@ export class MCPClient {
    * 在程序退出前调用，确保资源被正确释放
    */
   async cleanup(): Promise<void> {
+    // 清空消息历史
+    this.messages = [];
+
     if (this.mcp) {
       try {
         await this.mcp.close();
