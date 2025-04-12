@@ -91,9 +91,9 @@ node build/index.js <服务器标识符> <配置文件路径>
     "time": {
       "command": "node",
       "args": [
-        "/Users/bytedance/Desktop/github/mcp/dist/index.js"
+        "/Users/xxx/Desktop/github/mcp/dist/index.js"
       ],
-      "description": "自定义Python MCP服务器"
+      "description": "自定义 Node.js MCP服务器"
     },
     "mongodb": {
       "command": "npx",
