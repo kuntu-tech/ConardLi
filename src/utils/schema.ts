@@ -18,6 +18,10 @@ export function patchSchemaArrays(
     // 处理对象的所有属性
     if (node?.properties) {
       Object.entries(node.properties).forEach(([key, prop]: [string, any]) => {
+        if (Array.isArray(prop.type) && prop.type.length > 1) {
+          // 兼容豆包，type 不能为数组
+          prop.type = prop.type[0];
+        }
         if (prop.type === "array" && !prop.items) {
           // 发现缺少items的数组属性
           prop.items = defaultItems;

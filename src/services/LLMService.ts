@@ -68,6 +68,7 @@ export class LLMService {
 
       return result;
     } catch (error) {
+      addLogs(error, logType.LLMError);
       throw new Error(
         `发送消息到LLM失败: ${
           error instanceof Error ? error.message : String(error)
