@@ -18,8 +18,7 @@ MCP Client 是一个基于 Model Context Protocol 的 Node.js 客户端实现，
 ## 系统要求
 
 - Node.js 17 或更高版本
-- npm 最新版本
-- OpenAI API 密钥
+- LLM API 密钥（暂不支持 Ollama）
 - 磁盘空间用于存储日志文件（位于 `logs/` 目录）
 
 ## 安装
@@ -173,8 +172,5 @@ MCP Client 基于模块化的客户端-服务器架构：
 
 ## 许可证
 
-MIT
+Apache License 2.0
 
-## 贡献
-
-欢迎提交 Issues 和 Pull Requests！
