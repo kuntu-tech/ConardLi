@@ -111,6 +111,10 @@ export class MCPClient {
 
           // 读取系统提示词（如果有）
           this.systemPrompt = config.system;
+          this.messages.push({
+            role: "system",
+            content: this.systemPrompt || "",
+          });
 
           // 检查服务器标识符是否存在于配置中
           if (config.mcpServers && config.mcpServers[serverIdentifier]) {
@@ -185,12 +189,6 @@ export class MCPClient {
    */
   async processQuery(query: string): Promise<string> {
     try {
-      // 清空消息数组，但保留之前的对话历史
-      // 如果是第一次查询，或者需要重置对话，就添加系统提示词
-      if (this.messages.length === 0 && this.systemPrompt) {
-        this.messages.push({ role: "system", content: this.systemPrompt });
-      }
-
       // 添加新的用户查询
       this.messages.push({ role: "user", content: query });
 
@@ -388,6 +386,10 @@ export class MCPClient {
   async cleanup(): Promise<void> {
     // 清空消息历史
     this.messages = [];
+    this.messages.push({
+      role: "system",
+      content: this.systemPrompt || "",
+    });
 
     if (this.mcp) {
       try {
