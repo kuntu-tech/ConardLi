@@ -1,10 +1,11 @@
-# MCP Client
 
-基于 Model Context Protocol (MCP) 的 Node.js 客户端实现（使用 Function Calling）
 
 ## 项目介绍
 
-MCP Client 是一个基于 Model Context Protocol 的 Node.js 客户端实现，它允许您的应用连接到各种 MCP 服务器，并通过大语言模型（LLM）与这些服务器交互。MCP（模型上下文协议）是一个开放协议，用于标准化应用程序向 LLM 提供上下文的方式。
+MCP Client 是一个基于 Model Context Protocol 的 Node.js 客户端实现（使用 Function Calling），它允许您的应用连接到各种 MCP 服务器，并通过大语言模型（LLM）与这些服务器交互。MCP（模型上下文协议）是一个开放协议，用于标准化应用程序向 LLM 提供上下文的方式。
+
+![](./public/arc.png)
+
 
 ## 核心特性
 
@@ -155,6 +156,8 @@ $ npx mcp-client-nodejs mongodb./mcp-servers.json
 
 ## 工作原理
 
+![](./public/time-arc.png)
+
 1. **服务器连接**：客户端连接到指定的 MCP 服务器
 2. **工具发现**：自动获取服务器提供的可用工具列表
 3. **查询处理**：
@@ -182,6 +185,9 @@ MCP Client 包含一个全面的日志系统，详细记录所有关键操作和
 日志文件连统命名为 `[index] [log_type] YYYY-MM-DD HH:MM:SS.json`，包含序号、日志类型和时间戳，方便按时间顺序查看整个会话。
 
 ## 架构设计
+
+![](./public/code-arc.png)
+
 
 MCP Client 基于模块化的客户端-服务器架构：
 - **传输层**：使用 Stdio 传输机制与服务器通信
