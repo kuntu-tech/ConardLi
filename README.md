@@ -67,7 +67,7 @@ npm run build
 
 ## 使用方法
 
-要启动 MCP 客户端，您可以使用以下两种方式：
+要启动 MCP 客户端，您可以使用以下几种方式：
 
 ### 1. 直接指定服务器脚本路径
 
@@ -109,6 +109,22 @@ node build/index.js <服务器标识符> <配置文件路径>
 ```
 
 
+
+### 3. 使用 npm 包（npx）
+
+您可以直接通过 npx 运行这个包，无需本地克隆和构建：
+
+```bash
+# 直接连接脚本
+$ npx mcp-client-nodejs /path/to/mcp-server.js
+
+# 通过配置文件连接
+$ npx mcp-client-nodejs mongodb ./mcp-servers.json
+```
+
+> 注意：需要在当前运行目录的 .env 配置模型相关信息
+
+
 ### 示例
 
 直接连接 JavaScript MCP 服务器：
@@ -124,6 +140,15 @@ node build/index.js /path/to/mcp-server.py
 使用配置文件连接服务器：
 ```bash
 node build/index.js mongodb ./mcp-servers.json
+```
+
+使用 npx 运行：
+
+```bash
+# 直接连接脚本
+$ npx mcp-client-nodejs /path/to/mcp-server.js
+# 通过配置文件连接
+$ npx mcp-client-nodejs mongodb./mcp-servers.json
 ```
 
 ![](./public/demo.png)
