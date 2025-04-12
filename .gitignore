@@ -4,3 +4,4 @@ build/
 *.log
 mcp-servers.json
 logs/
+logs2/

@@ -85,6 +85,30 @@ node build/index.js <服务器标识符> <配置文件路径>
 
 其中 `<服务器标识符>` 是配置文件中定义的服务器名称，`<配置文件路径>` 是包含服务器定义的 JSON 文件的路径。
 
+```json
+{
+  "mcpServers": {
+    "time": {
+      "command": "node",
+      "args": [
+        "/Users/bytedance/Desktop/github/mcp/dist/index.js"
+      ],
+      "description": "自定义Python MCP服务器"
+    },
+    "mongodb": {
+      "command": "npx",
+      "args": [
+        "mcp-mongo-server",
+        "mongodb://localhost:27017/studentManagement?authSource=admin"
+      ]
+    }
+  },
+  "defaultServer": "mongodb",
+  "system": "自定义系统提示词"
+}
+```
+
+
 ### 示例
 
 直接连接 JavaScript MCP 服务器：
@@ -102,6 +126,8 @@ node build/index.js /path/to/mcp-server.py
 node build/index.js mongodb ./mcp-servers.json
 ```
 
+![](./public/demo.png)
+
 ## 工作原理
 
 1. **服务器连接**：客户端连接到指定的 MCP 服务器
@@ -117,6 +143,8 @@ node build/index.js mongodb ./mcp-servers.json
 ## 日志系统
 
 MCP Client 包含一个全面的日志系统，详细记录所有关键操作和通信。日志文件保存在 `logs/` 目录中，以 JSON 格式存储，方便查询和分析。
+
+![](./public/logs.png)
 
 ### 日志类型
 
