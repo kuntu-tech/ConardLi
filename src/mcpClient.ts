@@ -31,6 +31,7 @@ export class MCPClient {
   private tools: OpenAITool[] = []; // 可用工具列表
   private llmService: LLMService; // LLM服务
   private toolService: ToolService; // 工具服务
+  private systemPrompt?: string; // 系统提示词，从配置文件中读取
 
   /**
    * 构造函数
@@ -52,30 +53,109 @@ export class MCPClient {
 
   /**
    * 连接到MCP服务器
-   * @param serverScriptPath 服务器脚本路径
+   * @param serverIdentifier 服务器标识符（脚本路径或配置中的服务器名称）
+   * @param configPath 可选，MCP服务器配置文件路径
    */
-  async connectToServer(serverScriptPath: string): Promise<void> {
-    try {
-      // 检查脚本类型
-      const isJs = serverScriptPath.endsWith(".js");
-      const isPy = serverScriptPath.endsWith(".py");
+  /**
+   * 从脚本路径获取传输层选项
+   * @param scriptPath 脚本路径
+   * @returns 传输层选项
+   * @private
+   */
+  private getTransportOptionsForScript(scriptPath: string): {
+    command: string;
+    args: string[];
+    env?: Record<string, string>;
+  } {
+    // 检查脚本类型
+    const isJs = scriptPath.endsWith(".js");
+    const isPy = scriptPath.endsWith(".py");
 
-      if (!isJs && !isPy) {
-        throw new Error("服务器脚本必须是.js或.py文件");
+    if (!isJs && !isPy) {
+      console.warn("警告: 服务器脚本没有.js或.py扩展名，将尝试使用Node.js运行");
+    }
+
+    // 根据脚本类型确定命令
+    const command = isPy
+      ? process.platform === "win32"
+        ? "python"
+        : "python3"
+      : process.execPath;
+
+    return {
+      command,
+      args: [scriptPath],
+    };
+  }
+
+  async connectToServer(
+    serverIdentifier: string,
+    configPath?: string
+  ): Promise<void> {
+    try {
+      // 创建传输层参数
+      let transportOptions: {
+        command: string;
+        args: string[];
+        env?: Record<string, string>;
+      };
+
+      // 如果提供了配置文件路径，从配置文件加载服务器设置
+      if (configPath) {
+        try {
+          // 使用fs的promise API代替require
+          const fs = await import("fs/promises");
+          const configContent = await fs.readFile(configPath, "utf8");
+          const config = JSON.parse(configContent);
+
+          // 读取系统提示词（如果有）
+          this.systemPrompt = config.system;
+
+          // 检查服务器标识符是否存在于配置中
+          if (config.mcpServers && config.mcpServers[serverIdentifier]) {
+            const serverConfig = config.mcpServers[serverIdentifier];
+            transportOptions = {
+              command: serverConfig.command,
+              args: serverConfig.args || [],
+              env: serverConfig.env,
+            };
+            console.log(`使用配置文件启动服务器: ${serverIdentifier}`);
+          } else if (
+            serverIdentifier === "default" &&
+            config.defaultServer &&
+            config.mcpServers[config.defaultServer]
+          ) {
+            // 使用默认服务器
+            const defaultServerName = config.defaultServer;
+            const serverConfig = config.mcpServers[defaultServerName];
+            transportOptions = {
+              command: serverConfig.command,
+              args: serverConfig.args || [],
+              env: serverConfig.env,
+            };
+            console.log(`使用默认服务器: ${defaultServerName}`);
+          } else {
+            // 如果指定的服务器不在配置中，打印错误消息
+            throw new Error(`在配置文件中未找到服务器 ${serverIdentifier}`);
+          }
+        } catch (error) {
+          console.error(
+            `读取配置文件错误: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
+          // 如果指定了配置文件但未找到查找未指定的服务器，应直接抛出错误
+          throw new Error(
+            `未能从配置文件 '${configPath}' 中加载服务器 '${serverIdentifier}'`
+          );
+        }
+      } else {
+        // 没有提供配置文件，使用传统的脚本路径模式
+        transportOptions = this.getTransportOptionsForScript(serverIdentifier);
       }
 
-      // 根据脚本类型确定命令
-      const command = isPy
-        ? process.platform === "win32"
-          ? "python"
-          : "python3"
-        : process.execPath;
-
       // 创建传输层
-      this.transport = new StdioClientTransport({
-        command,
-        args: [serverScriptPath],
-      });
+      this.transport = new StdioClientTransport(transportOptions);
 
       // 连接到服务器
       this.mcp.connect(this.transport);
@@ -85,7 +165,9 @@ export class MCPClient {
 
       console.log(
         "已连接到服务器，可用工具:",
-        this.tools.map(({ function: { name } }) => name)
+        this.tools.map(({ function: { name, description } }) => {
+          return { name, description };
+        })
       );
     } catch (error) {
       console.error("连接到MCP服务器失败: ", error);
@@ -103,9 +185,17 @@ export class MCPClient {
   async processQuery(query: string): Promise<string> {
     try {
       // 构建初始消息
-      const messages: Array<OpenAI.Chat.ChatCompletionMessageParam> = [
-        { role: "user", content: query },
-      ];
+      const messages: Array<OpenAI.Chat.ChatCompletionMessageParam> = [];
+
+      // 如果有系统提示词，则先添加到消息中
+      if (this.systemPrompt) {
+        messages.push({ role: "system", content: this.systemPrompt });
+      }
+
+      // 添加用户查询
+      messages.push({ role: "user", content: query });
+
+      console.log("messages", JSON.stringify(messages, null, 2));
 
       // 获取初始响应
       const response = await this.llmService.sendMessage(messages, this.tools);
@@ -113,7 +203,9 @@ export class MCPClient {
       // 提取回复内容
       const finalText: string[] = [];
 
-      console.log(33, response);
+      if (!response.choices || !response.choices[0]) {
+        console.log(33, response);
+      }
 
       // 获取响应消息
       const responseMessage = response.choices[0].message;
@@ -127,6 +219,11 @@ export class MCPClient {
       if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
         // 添加工具调用到消息历史
         messages.push(responseMessage);
+
+        console.log(
+          "tool_calls",
+          JSON.stringify(responseMessage.tool_calls, null, 2)
+        );
 
         // 处理每个工具调用
         for (const toolCall of responseMessage.tool_calls) {
@@ -188,6 +285,8 @@ export class MCPClient {
 
         // 获取模型对工具结果的解释
         try {
+          console.log("tools call messages", messages);
+
           const followupResponse = await this.llmService.sendMessage(messages);
 
           const followupContent = followupResponse.choices[0].message.content;

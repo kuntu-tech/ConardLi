@@ -20,8 +20,14 @@ function showUsage(): void {
   console.log("=====================================================");
   console.log("MCP Client - 模型上下文协议客户端");
   console.log("=====================================================");
-  console.log("用法: node build/index.js <服务器脚本路径>");
-  console.log("示例: node build/index.js ../mcp-server/build/index.js");
+  console.log("基本用法:");
+  console.log("  node build/index.js <服务器脚本路径>");
+  console.log("使用配置文件:");
+  console.log("  node build/index.js <服务器名称> <配置文件路径>");
+  console.log("示例:");
+  console.log("  node build/index.js ../mcp-server/build/index.js");
+  console.log("  node build/index.js memory ./mcp-servers.json");
+  console.log("  node build/index.js default ./mcp-servers.json");
   console.log("=====================================================");
 }
 
@@ -40,15 +46,20 @@ async function main() {
       return;
     }
 
-    const serverPath = process.argv[2];
+    const serverIdentifier = process.argv[2];
+    const configPath = process.argv.length >= 4 ? process.argv[3] : undefined;
     
     // 创建MCP客户端实例
     const mcpClient = new MCPClient();
     
     try {
       // 连接到MCP服务器
-      console.log(`正在连接到服务器: ${serverPath}`);
-      await mcpClient.connectToServer(serverPath);
+      if (configPath) {
+        console.log(`正在连接到服务器: ${serverIdentifier} (使用配置文件: ${configPath})`);
+      } else {
+        console.log(`正在连接到服务器: ${serverIdentifier}`);
+      }
+      await mcpClient.connectToServer(serverIdentifier, configPath);
       
       // 启动交互式聊天循环
       await mcpClient.chatLoop();
