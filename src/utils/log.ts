@@ -24,6 +24,9 @@ export enum logType {
  * 清空日志目录
  */
 export function clearLogs(): void {
+  if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir);
+  }
   fs.readdir(logsDir, (err, files) => {
     if (err) {
       console.error("清空日志目录失败:", err);
