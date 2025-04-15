@@ -27,7 +27,7 @@ MCP Client 是一个基于 Model Context Protocol 的 Node.js 客户端实现（
 ### 1. 克隆仓库
 
 ```bash
-git clone https://github.com/yourusername/mcp-client.git
+git clone https://github.com/ConardLi/mcp-client-nodejs.git
 cd mcp-client
 ```
 
@@ -92,7 +92,7 @@ node build/index.js <服务器标识符> <配置文件路径>
     "time": {
       "command": "node",
       "args": [
-        "/Users/xxx/Desktop/github/mcp/dist/index.js"
+        "/Users/xxx/mcp/dist/index.js"
       ],
       "description": "自定义 Node.js MCP服务器"
     },
@@ -156,7 +156,7 @@ $ npx mcp-client-nodejs mongodb./mcp-servers.json
 
 ## 工作原理
 
-![](./public/time-arc.png)
+![](./public/time-arc2.png)
 
 1. **服务器连接**：客户端连接到指定的 MCP 服务器
 2. **工具发现**：自动获取服务器提供的可用工具列表
