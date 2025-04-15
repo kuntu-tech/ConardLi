@@ -28,7 +28,7 @@ MCP Client 是一个基于 Model Context Protocol 的 Node.js 客户端实现（
 
 ```bash
 git clone https://github.com/ConardLi/mcp-client-nodejs.git
-cd mcp-client
+cd mcp-client-nodejs
 ```
 
 ### 2. 安装依赖
