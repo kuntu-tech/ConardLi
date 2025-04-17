@@ -276,8 +276,6 @@ export class MCPClient {
 
         // 获取模型对工具结果的解释
         try {
-          console.log("tools call messages", this.messages);
-
           const followupResponse = await this.llmService.sendMessage(
             this.messages
           );

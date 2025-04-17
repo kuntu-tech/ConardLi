@@ -58,7 +58,10 @@ export function addLogs(logData: any, logType: logType) {
   const minutes = String(now.getMinutes()).padStart(2, "0");
   const seconds = String(now.getSeconds()).padStart(2, "0");
   const logFileName = `[${index++}] ${logType} ${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-  console.log(logFileName, JSON.stringify(logData, null, 2));
+
+  // console.log(logFileName, JSON.stringify(logData, null, 2));
+
+  console.log(logFileName);
 
   if (logData) {
     fs.writeFileSync(
