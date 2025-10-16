@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-filesystem",
+        "D:\\My project\\ConardLi"
+      ]
+    }
+  },
+  "defaultServer": "filesystem",
+  "system": "你是一个有用的AI助手，可以帮助用户进行文件操作和代码分析。"
+}
